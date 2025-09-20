@@ -1,5 +1,7 @@
 package com.example.telegram_bot.update;
 
+import com.example.telegram_bot.entity.Feedback;
+import com.example.telegram_bot.repository.FeedbackRepository;
 import com.example.telegram_bot.service.GoogleSheetsService;
 import com.example.telegram_bot.service.TrelloService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,7 +34,8 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
     private final OpenAIClient openAiClient;
     private final GoogleSheetsService googleSheetsService;
-    protected final TrelloService trelloService;
+    private final TrelloService trelloService;
+    private final FeedbackRepository feedbackRepository;
 
     private final Map<Long, String> userDepartments = new HashMap<>();
     private final Map<Long, String> userPositions = new HashMap<>();
@@ -41,13 +44,14 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     public UpdateConsumer(
             @Value("${telegram.bot.token}") String telegramToken,
             @Value("${openai.api.key}") String openAiKey,
-            GoogleSheetsService googleSheetsService, TrelloService trelloService) {
+            GoogleSheetsService googleSheetsService, TrelloService trelloService, FeedbackRepository feedbackRepository) {
         this.telegramClient = new OkHttpTelegramClient(telegramToken);
         this.openAiClient = OpenAIOkHttpClient.builder()
                 .apiKey(openAiKey)
                 .build();
         this.googleSheetsService = googleSheetsService;
         this.trelloService = trelloService;
+        this.feedbackRepository = feedbackRepository;
         this.googleSheetsService.createHeaderIfNotExists();
     }
 
@@ -213,6 +217,14 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
                 e.printStackTrace();
             }
         }
+        Feedback fb = new Feedback();
+        fb.setDepartment(userDepartments.get(chatId));
+        fb.setPosition(userPositions.get(chatId));
+        fb.setMessage(feedback);
+        fb.setEmotion(sentiment);
+        fb.setCriticality(criticality);
+        fb.setSolution(solution);
+        feedbackRepository.save(fb);
 
         sendText(chatId, reply);
     }
