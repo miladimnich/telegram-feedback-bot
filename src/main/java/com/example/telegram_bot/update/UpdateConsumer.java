@@ -1,6 +1,7 @@
 package com.example.telegram_bot.update;
 
 import com.example.telegram_bot.service.GoogleSheetsService;
+import com.example.telegram_bot.service.TrelloService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
@@ -31,6 +32,7 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
     private final OpenAIClient openAiClient;
     private final GoogleSheetsService googleSheetsService;
+    protected final TrelloService trelloService;
 
     private final Map<Long, String> userDepartments = new HashMap<>();
     private final Map<Long, String> userPositions = new HashMap<>();
@@ -39,12 +41,13 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     public UpdateConsumer(
             @Value("${telegram.bot.token}") String telegramToken,
             @Value("${openai.api.key}") String openAiKey,
-            GoogleSheetsService googleSheetsService) {
+            GoogleSheetsService googleSheetsService, TrelloService trelloService) {
         this.telegramClient = new OkHttpTelegramClient(telegramToken);
         this.openAiClient = OpenAIOkHttpClient.builder()
                 .apiKey(openAiKey)
                 .build();
         this.googleSheetsService = googleSheetsService;
+        this.trelloService = trelloService;
         this.googleSheetsService.createHeaderIfNotExists();
     }
 
@@ -203,6 +206,14 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
 
         String reply = String.format("Емоція: %s\nКритичність: %d/5\nПропозиція рішення: %s",
                 sentiment, criticality, solution);
+        if (criticality >= 4) {
+            try {
+                trelloService.createCard("Критичний відгук", feedback + "\nПропозиція рішення: " + solution);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         sendText(chatId, reply);
     }
 
