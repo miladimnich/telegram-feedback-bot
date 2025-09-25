@@ -1,118 +1,144 @@
 # Feedback Bot
 
-Це Spring Boot застосунок, який інтегрується з **Telegram Bot API**, **OpenAI** та **Google Sheets**.  
-Бот отримує відгуки від користувачів у Telegram, аналізує їх за допомогою OpenAI та зберігає результати у Google Таблицю.
+This is a Spring Boot application that integrates with Telegram Bot API, OpenAI, and Google Sheets.
+The bot receives feedback from users on Telegram, analyzes it using OpenAI, and stores the results in a Google Sheet.
+---
+
+## Functionality
+
+✅ Receives messages from users on Telegram
+
+✅ Uses OpenAI (ChatGPT) to analyze feedback:
+
+Determines the emotion (positive/negative/neutral)
+
+Determines criticality (1–5)
+
+Suggests a solution
+
+✅ Automatically saves results to Google Sheets
+
+✅ Returns the analysis result to the user
+
+
+## 🛠️ Technologies
+
+Spring Boot – application framework
+
+TelegramBots (client, springboot-longpolling-starter) – Telegram Bot API integration
+
+OpenAI Java SDK – interaction with GPT models
+
+Google API Client – working with Google APIs
+
+Google Sheets API v4 – saving feedback in spreadsheets
+
+Google Auth Library – service account authentication
 
 ---
 
-## Функціонал
-Обов’язковий (реалізований)
-
-- ✅ Приймає повідомлення від користувачів у Telegram
-- ✅ Використовує OpenAI (ChatGPT) для аналізу фідбеку:
-    - Визначає емоцію (позитивна/негативна/нейтральна)
-    - Визначає критичність (1–5)
-    - Пропонує рішення
-- ✅ Автоматично записує результати в Google Sheets
-- ✅ Повертає користувачу відповідь з аналізом
-
-## 🛠️ Технології
-
-- **Spring Boot** – основа застосунку
-- **TelegramBots (client, springboot-longpolling-starter)** – інтеграція з Telegram Bot API
-- **OpenAI Java SDK** – взаємодія з GPT-моделями
-- **Google API Client** – робота з Google API
-- **Google Sheets API v4** – збереження відгуків у таблиці
-- **Google Auth Library** – авторизація через service account
-
----
-
-## ⚙️ Налаштування
+## ⚙️ Setup
 
 ### 1. Telegram Bot
-1. Створи бота через [BotFather]
-2. Отримай токен
-3. Додай у `application.properties`:
+ 
+1. Create a bot via [BotFather]
+2. Get the token 
+3. Add it to `application.properties`:
    ```properties
    telegram.bot.token=YOUR_TELEGRAM_BOT_TOKEN
    
 ### 2. OpenAI API
-1. Зареєструйся або увійди на [OpenAI Platform](https://platform.openai.com/).
-2. Перейди в https://platform.openai.com/settings/organization/api-keys **API Keys** → створи новий ключ.
-3. Поповни баланс акаунта (мінімум $5) — без цього ключ не буде працювати.
-4. Скопіюй ключ.
-4. Додай у `application.properties`:
+1. Sign up or log in to [OpenAI Platform](https://platform.openai.com/).
+2. Go to https://platform.openai.com/settings/organization/api-keys **API Keys** → create a new API key.
+3. Add some funds to your account (minimum $5) – the key won’t work without it.
+4. Copy the key and add it to `application.properties`:
    ```properties
    openai.api.key=YOUR_OPENAI_API_KEY
 
 ### 3. Google Sheets API
-1. Перейди в [Google Cloud Console](https://console.cloud.google.com/).
-2. Створи новий проект або вибери існуючий.
-3. Увімкни API **Google Sheets API** для цього проєкту.
-4. Створи **Service Account** (обліковий запис служби).
-5. Згенеруй JSON-ключ (credentials) та збережи його в `src/main/resources/`, наприклад:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project or select an existing one.
+3. Enable Google Sheets API for this project.
+4. Create a Service Account.
+5. Generate a JSON key (credentials) and save it in src/main/resources/, e.g.:
    src/main/resources/service-account.json
-6. Додай сервісний акаунт у налаштуваннях доступу Google Sheets (поділись таблицею як з e-mail користувача service account).
-7. У `application.properties` додай:
+6. Share the Google Sheet with the service account email.
+7. Add the spreadsheet ID to `application.properties` 
 ```properties
- google.sheets.id=YOUR_SPREADSHEET_ID
-YOUR_SPREADSHEET_ID — це частина URL після /d/ та до /edit.
-Наприклад: https://docs.google.com/spreadsheets/d/1AbCDefGhIJklMNopQRstuVWxyz12345/edit
-ID буде 1AbCDefGhIJklMNopQRstuVWxyz12345
+google.sheets.id=YOUR_SPREADSHEET_ID
+YOUR_SPREADSHEET_ID — is the part of the URL between /d/ and /edit.
+Example:
+https://docs.google.com/spreadsheets/d/1AbCDefGhIJklMNopQRstuVWxyz12345/edit
+Spreadsheet ID = 1AbCDefGhIJklMNopQRstuVWxyz12345
 ```
-## 🚀 Запуск застосунку
-1. запусти IntelliJ IDEA
-2. Бот автоматично підключиться до Telegram API.
-3. Коли користувач напише /start → отримає меню з вибором філії.
-4. Далі можна обрати посаду → бот почне приймати фідбек.
-5. Відгук буде проаналізований OpenAI (емоція, критичність, рішення).
-6. Результати збережуться в Google Sheets.
+## 🚀 Running the Application
+1. Open the project in IntelliJ IDEA
 
-## 📌 Автоматичне створення Trello-карт для критичних відгуків
+2. The bot will automatically connect to the Telegram API
 
-Якщо критичність відгуку >= 4, бот автоматично створює картку на Trello:
-1. Перейти на Trello Power-Up Admin (https://trello.com/power-ups/admin/)
-2. Натиснути New → New Power-Up or Integration.
+3. When a user types /start, they will receive a menu to select a department
 
-Заповнити форму:
+4. Then they can select a role → the bot will start receiving feedback
 
-Power-Up or Integration name – назва вашого Power-Up, можна змінити пізніше.
+5. Feedback will be analyzed by OpenAI (emotion, criticality, solution)
 
-Workspace – оберіть Workspace, до якого належить Power-Up.
+6. Results will be saved in Google Sheets
 
-Email – ваш робочий email для Trello.
+## 📌 Automatic Trello Card Creation for Critical Feedback
 
-Support contact – email або посилання для підтримки користувачів.
+If feedback criticality >= 4, the bot automatically creates a Trello card:
 
-Author – ім’я автора або компанії.
-3. Натиснути Create.
-4. Generate New API Key – скопіюй цей ключ.
-5. Зліва натисни Generate a Token – згенеруй токен для доступу вашого бота до Trello.
-6. Збережи API Key та Token – вони знадобляться у вашому Spring Boot застосунку для створення карток у Trello.
-7. Відкриваєш потрібну карту на дошці Trello.
-8. Натискаєш три крапки (меню) → Share → Export JSON.
-9. У JSON знайди поле "id" – це і є List ID, тобто ідентифікатор списку, куди має додаватися нова картка.
-4. Додай дані у `application.properties`:
+Go to Trello Power-Up Admin: https://trello.com/power-ups/admin/
+
+Click New → New Power-Up or Integration
+
+Fill in the form:
+
+Power-Up or Integration name – name of your Power-Up
+
+Workspace – select your workspace
+
+Email – your work email
+
+Support contact – email or link for user support
+
+Author – author or company name
+
+Click Create
+
+Generate a New API Key and copy it
+
+Generate a Token for your bot to access Trello
+
+Save the API Key and Token – you will use them in Spring Boot to create cards
+
+Open the desired Trello board list → click three dots → Share → Export JSON
+
+Find "id" in the JSON – this is the List ID for new cards
+Add the Trello details to `application.properties`
 ```properties
 trello.api=YOUR_TRELLO_API_KEY
 trello.token=YOUR_TRELLO_TOKEN
 trello.listId=YOUR_LIST_ID
 ```
-## 🚀Використання
-У коді є клас TrelloService:
-1. Метод додає картку на Trello-дошку при критичних відгуках (4–5).
-2. Параметри name та description можна налаштовувати на свій смак.(назва картки, яка буде створена в Trello. Наприклад: "Критичний відгук"),
-description — опис картки, що з’явиться всередині картки. Там можна помістити текст відгуку, пропозиції рішення тощо.)
-3. У методі analyzeFeedback додана перевірка критичності:Якщо критичність відгуку 4 або 5, викликається метод createCard з TrelloService.
+## 🚀Using TrelloService
+The service adds a Trello card for critical feedback (4–5)
+
+You can configure name and description (e.g., card title: "Critical Feedback", description: feedback + solution)
+
+In analyzeFeedback, if criticality is 4 or 5, createCard is called automatically
 
 ---
 
-## 🗄️ Інтеграція з PostgreSQL
+## 🗄️ PostgreSQL Integration
 
-Тепер бот зберігає всі відгуки не тільки у **Google Sheets**, але й у **PostgreSQL**.
+Now the bot stores all feedback not only in Google Sheets, but also in PostgreSQL.
 
-### 1. Залежності
-1. У `pom.xml` додано відповідні залежності
-2. У application.properties додано налаштування для бази
-3. Створено Entity, Service та Repository класи для збереження даних у таблиці:
+Dependencies
+
+Added dependencies to pom.xml
+
+Configured database settings in application.properties
+
+Created Entity, Service, and Repository classes for saving data in the table
 
