@@ -66,7 +66,7 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             } else if (userDepartments.containsKey(chatId) && userPositions.containsKey(chatId)) {
                 analyzeFeedback(messageText, chatId);
             } else {
-                sendText(chatId, "Будь ласка, спершу натисніть /start, щоб обрати філію та посаду.");
+                sendText(chatId, "Please press /start first to select your branch and role.");
             }
 
         } else if (update.hasCallbackQuery()) {
@@ -74,28 +74,28 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
 
             switch (callbackData) {
-                case "ФІЛІЯ_КИЇВ":
-                    userDepartments.put(chatId, "СТО Київ");
-                    sendPositionMenu(chatId, "СТО Київ");
+                case "DEPARTMENT_KYIV":
+                    userDepartments.put(chatId, "Service Center Kyiv");
+                    sendPositionMenu(chatId, "Service Center Kyiv");
                     break;
-                case "ФІЛІЯ_ЛЬВІВ":
-                    userDepartments.put(chatId, "СТО Львів");
-                    sendPositionMenu(chatId, "СТО Львів");
+                case "DEPARTMENT_LVIV":
+                    userDepartments.put(chatId, "Service Center Lviv");
+                    sendPositionMenu(chatId, "Service Center Lviv");
                     break;
-                case "ПОСАДА_МЕХАНІК":
-                    userPositions.put(chatId, "Механік");
-                    sendText(chatId, "Ви обрали посаду: Механік.");
+                case "ROLE_MECHANIC":
+                    userPositions.put(chatId, "Mechanic");
+                    sendText(chatId, "You selected the role: Mechanic.");
                     break;
-                case "ПОСАДА_ЕЛЕКТРИК":
-                    userPositions.put(chatId, "Електрик");
-                    sendText(chatId, "Ви обрали посаду: Електрик.");
+                case "ROLE_ELECTRICIAN":
+                    userPositions.put(chatId, "Electrician");
+                    sendText(chatId, "You selected the role: Electrician");
                     break;
-                case "ПОСАДА_МЕНЕДЖЕР":
-                    userPositions.put(chatId, "Менеджер");
-                    sendText(chatId, "Ви обрали посаду: Менеджер.");
+                case "ROLE_MANAGER":
+                    userPositions.put(chatId, "Manager");
+                    sendText(chatId, "You selected the role: Manager.");
                     break;
                 default:
-                    sendText(chatId, "Невідома опція. Спробуйте ще раз.");
+                    sendText(chatId, "Unknown option. Please try again.");
             }
         }
     }
@@ -112,45 +112,45 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     @SneakyThrows
     private void sendPositionMenu(long chatId, String department) {
         SendMessage message = SendMessage.builder()
-                .text("Оберіть посаду у " + department)
+                .text("Select your role in " + department)
                 .chatId(chatId)
                 .build();
 
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
-        if (department.equals("СТО Київ")) {
+        if (department.equals("Service Center Kyiv")) {
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Механік")
-                            .callbackData("ПОСАДА_МЕХАНІК")
+                            .text("Mechanic")
+                            .callbackData("ROLE_MECHANIC")
                             .build()));
 
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Електрик")
-                            .callbackData("ПОСАДА_ЕЛЕКТРИК")
+                            .text("Electrician")
+                            .callbackData("ROLE_ELECTRICIAN")
                             .build()));
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Менеджер")
-                            .callbackData("ПОСАДА_МЕНЕДЖЕР")
+                            .text("Manager")
+                            .callbackData("ROLE_MANAGER")
                             .build()));
-        } else if (department.equals("СТО Львів")) {
+        } else if (department.equals("Service Center Lviv")) {
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Механік")
-                            .callbackData("ПОСАДА_МЕХАНІК")
+                            .text("Mechanic")
+                            .callbackData("ROLE_MECHANIC")
                             .build()));
 
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Електрик")
-                            .callbackData("ПОСАДА_ЕЛЕКТРИК")
+                            .text("Electrician")
+                            .callbackData("ROLE_ELECTRICIAN")
                             .build()));
             rows.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("Менеджер")
-                            .callbackData("ПОСАДА_МЕНЕДЖЕР")
+                            .text("Manager")
+                            .callbackData("ROLE_MANAGER")
                             .build()));
         }
 
@@ -163,19 +163,19 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     @SneakyThrows
     private void analyzeFeedback(String feedback, long chatId) {
         String prompt = """
-                Проаналізуй повідомлення українською.
-                1) Визначи, чи це негативний/нейтральний/позитивний відгук.
-                2) Визначи рівень критичності за шкалою від 1 до 5.
-                3) порадь як можна вирішити дане питання.
+                Analyze the message in English.
+                               1) Determine whether the feedback is negative, neutral, or positive.
+                               2) Determine the criticality level on a scale from 1 to 5.
+                               3) Suggest how this issue could be resolved.
                 
-                Фідбек: "%s
+                               Feedback: "%s
                 
-                Відповідь повинна бути у форматі JSON:
-                {
-                  "емоція": "...",
-                  "критичність": ...,
-                  "рішення": "..."
-                }
+                               The response should be in JSON format:
+                               {
+                                 "emotion": "...",
+                                 "criticality": ...,
+                                 "solution": "..."
+                               }
                 """.formatted(feedback);
 
 
@@ -191,9 +191,10 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(content);
 
-        String sentiment = root.path("емоція").asText("Невідомо");
-        int criticality = root.path("критичність").asInt(0);
-        String solution = root.path("рішення").asText("Рішення не надано.");
+        String sentiment = root.path("emotion").asText("Unknown");
+        int criticality = root.path("criticality").asInt(0);
+        String solution = root.path("solution").asText("No solution provided.");
+
 
         try {
             googleSheetsService.appendFeedback(
@@ -208,15 +209,16 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             e.printStackTrace();
         }
 
-        String reply = String.format("Емоція: %s\nКритичність: %d/5\nПропозиція рішення: %s",
+        String reply = String.format("Emotion: %s\nCriticality: %d/5\nSuggested solution: %s",
                 sentiment, criticality, solution);
         if (criticality >= 4) {
             try {
-                trelloService.createCard("Критичний відгук", feedback + "\nПропозиція рішення: " + solution);
+                trelloService.createCard("Critical Feedback", feedback + "\nSuggested solution: " + solution);
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
         Feedback fb = new Feedback();
         fb.setDepartment(userDepartments.get(chatId));
         fb.setPosition(userPositions.get(chatId));
@@ -233,16 +235,16 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     @SneakyThrows
     private void sendMainMenu(long chatId) {
         SendMessage message = SendMessage.builder()
-                .text("Вибери філію")
+                .text("Select a department")
                 .chatId(chatId)
                 .build();
         InlineKeyboardButton button_1 = InlineKeyboardButton.builder()
-                .text("СТО Київ")
-                .callbackData("ФІЛІЯ_КИЇВ")
+                .text("Service Center Kyiv")
+                .callbackData("DEPARTMENT_KYIV")
                 .build();
         InlineKeyboardButton button_2 = InlineKeyboardButton.builder()
-                .text("СТО Львів")
-                .callbackData("ФІЛІЯ_ЛЬВІВ")
+                .text("Service Center Lviv")
+                .callbackData("DEPARTMENT_LVIV")
                 .build();
         List<InlineKeyboardRow> row = List.of(
                 new InlineKeyboardRow(button_1),
