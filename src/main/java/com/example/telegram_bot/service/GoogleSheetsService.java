@@ -70,13 +70,14 @@ public class GoogleSheetsService {
 
         List<List<Object>> values = response.getValues();
         if (values == null || values.isEmpty()) {
-            List<Object> header = List.of("Філія", "Посада", "Відгук", "Емоція", "Критичність", "Рішення", "Час");
+            List<Object> header = List.of("Department", "Role", "Feedback", "Emotion", "Criticality", "Solution", "Time");
             ValueRange body = new ValueRange().setValues(List.of(header));
             sheets.spreadsheets().values()
                     .update(spreadsheetId, "A1:G1", body)
                     .setValueInputOption("RAW")
                     .execute();
         }
+
     }
 
 }
